@@ -1,144 +1,156 @@
-const posts = require('../data/array')
+const connection = require("../data/posts_db")
 
-function index (req, res) {
 
-    //Inizialmente, il menu filtrato corrisponde a quello originale
-    let filteredPosts = posts;
-
-    //Se la richiesta contiene un filtro, allora filtriamo l'array
-    //Filtriamo per "id"
-    // if (req.query.id) {
-    //     const postId = parseInt(req.query.id); 
-    //     filteredPosts = posts.find(
-    //         post => post.id === postId
-    //     );
-    // }
-
-     //Filtriamo per "tags"
+function index(req, res) {
+    /*
+    //faccio coincidere filteredPosts con l'array iniziale
+    let objfilter = datas;
+    // Pi()
+    // Se la richiesta contiene un filtro(req.query.tag = true/false => booleano), allora filtriamo i post
     if (req.query.tags) {
-        filteredPosts = posts.filter(
-            post => post.tags.includes(req.query.tags)
-        );
-    } 
-    res.json(filteredPosts)
-};
-// show
-function show (req, res) {
-
-    //Rendiamo "id" inserito dall'utente un numero intero invece che una stringa per poterlo trovare
-    const postId = parseInt(req.params.id); 
-
-    //Usiamo il ".find" per trovare il singolo id nell'array "posts" con un arrow function
-    const post = posts.find(element => element.id === postId);
-
-    //Facciamo il controllo se l'id é presente
-    if (!post){
-
-        //Impostaimo lo status 404
-        res.status(404)
-
-        //Restituiamo il json con altre informazioni
-        return res.json({
-            error: "Not Found",
-            message: "Post non trovato"
-        })
+        objfilter = datas.filter(post => post.tags.includes(req.query.tags));
     }
 
-    //Restituisce il singolo post con l'id inserito in formato json
-    res.json(post); 
-  };
+    // restituisco l'array filteredPosts, filtrato o meno!
+    res.json(objfilter);*/
 
-// store
-function store (req, res) {
+    const sql = "SELECT * FROM posts"
 
-    const newId = posts[posts.length - 1].id + 1;
+    connection.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: "Database query failed" });
+        res.json(results);
+    })
+};
+
+//show
+function show(req, res) {
+
+    // let id = parseInt(req.params.id)
+
+    // const oggettoSingolo = datas.find((element) => element.id === id)
+
+    // // Facciamo il controllo
+    // if (!oggettoSingolo) {
+
+    //     res.status(404);
+
+    //     return res.json({
+    //         status: 404,
+    //         error: "Not Found",
+    //         message: "Pizza non trovata"
+    //     })
+    // }
+
+    // res.json(oggettoSingolo)
+
+    const id = req.params.id
+
+    const sql = "SELECT * FROM posts WHERE id = ?"
+    connection.query(sql, [id], (err, results) => {
+        err && res.status(500).json({ error: "Database query failed" })
+        results.length === 0 && res.status(404).json({ error: "Post not found" })
+        res.json(results[0]);
+    })
+}
+
+//store
+function store(req, res) {
+    // Creiamo un nuovo id incrementando l'ultimo id presente
+    //ultimo oggetto di un array: arrayPizzas[arrayPizzas.length - 1]
+    //estraggo all'oggetto il valore della chiave "id"
+    //ottenuto il valore dell'ultimo ID aggiungo + 1
+    const newId = datas[datas.length - 1].id + 1;
 
     // Creiamo un nuovo oggetto pizza
     const newPost = {
-    id: newId,
-    title: req.body.title,
-    content: req.body.content,
-    image: req.body.image,
-    ingredients: req.body.tags
+        id: newId,
+        title: req.body.title,
+        content: req.body.content,
+        image: req.body.image,
+        tags: req.body.tags
     }
 
-    // Aggiungiamo la nuova pizza al menu
-    posts.push(newPost);
+    // Aggiungiamo la nuova pizza al arrayPizzas
+    datas.push(newPost);
 
     // controlliamo
-    console.log(posts);
+    console.log(datas);
 
-    // Restituiamo lo status corretto e la pizza appena creata
+
+    // Restituiamo lo status corretto e il post appena creata
     res.status(201);
-    res.json(newPost);;
-    };
+    res.json(newPost);
+}
 
-// update
-function update (req, res) {
-
+//update
+function update(req, res) {
     // recuperiamo l'id dall' URL e trasformiamolo in numero
     const id = parseInt(req.params.id)
 
-    // cerchiamo il pizza tramite id
-    const post = posts.find(post => post.id === id);
+    // cerchiamo il post tramite id
+    const oggettoTrovato = datas.find(post => post.id === id);
 
     // Piccolo controllo
-    if (!post) {
-      res.status(404);
-      return res.json({
-      error: "Not Found",
-      message: "Post non trovato"
-      });
+    if (!oggettoTrovato) {
+        res.status(404);
+
+        return res.json({
+            error: "Not Found",
+            message: "Pizza non trovata"
+        })
     }
 
-    // Aggiorniamo la pizza
-    post.title = req.body.title;
-    post.content = req.body.content;
-    post.image = req.body.image;
-    post.tags = req.body.tags;
+    // Aggiorniamo il post
+    oggettoTrovato.title = req.body.title;
+    oggettoTrovato.image = req.body.image;
+    oggettoTrovato.tags = req.body.tags;
+    oggettoTrovato.content = req.body.content;
 
-   // Controlliamo il menu
-   console.log(posts)
+    // Controlliamo il arrayDatas
+    console.log(datas)
 
-   // Restituiamo la pizza appena aggiornata
-   res.json(post);
-    
-};
+    // Restituiamo il post appena aggiornata
+    res.json(oggettoTrovato);
+}
 
 // modify
-function modify (req, res) {
-    res.send('Modifica parziale del post ' + req.params.id);
-};
+function modify(req, res) {
+    res.send("Modifica parziale del post " + req.params.id)
+}
+
 // destroy
-function destroy (req, res) {
-        //Rendiamo "id" inserito dall'utente un numero intero invece che una stringa per poterlo trovare
-        const postId = parseInt(req.params.id); 
+function destroy(req, res) {
 
-        //Usiamo il ".find" per trovare il singolo id nell'array "posts" con un arrow function
-        const post = posts.find(element => element.id === postId);
-    
-        //Facciamo il controllo se l'id é presente
-        if (!post){
-    
-            //Impostaimo lo status 404
-            res.status(404)
-    
-            //Restituiamo il json con altre informazioni
-            return res.json({
-                error: "Not Found",
-                message: "Post non trovata"
-            })
-        }
-    
-        //Rimuove il singolo post con l'id inserito
-        posts.splice(posts.indexOf(post), 1); 
+    // const oggettoSingolo = datas.find((element) => element.id === parseInt(req.params.id))
 
-        //Verifichiamo la presenza dell'elemento cancellato
-        console.log(posts)
+    // //controllo
+    // if (!oggettoSingolo) {
 
-        //Restituiamo lo status corretto
+    //     res.status(404);
+
+    //     return res.json({
+    //         status: 404,
+    //         error: "Not Found",
+    //         message: "Post non trovato"
+    //     })
+    // }
+
+
+
+    // //Rimuoviamo il post
+    // datas.splice(datas.indexOf(oggettoSingolo), 1)
+
+    // console.log(datas)
+    // //Restituiamo lo stato corretto
+    // res.sendStatus(204)
+
+    const {id} = req.params;
+
+    connection.query("DELETE FROM posts WHERE id = ?", [id], (err) => {
+        err && res.status(500).json({ error: "Failed to delete posts" })
         res.sendStatus(204)
-      };
-
+    })
+}
 
 module.exports = { index, show, store, update, modify, destroy }
+

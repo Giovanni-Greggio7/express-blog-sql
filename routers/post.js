@@ -1,23 +1,18 @@
-const express = require('express')
-const controllore = require('../controllers/controllore')
+const express = require("express")
 const router = express.Router()
+const {index, show, store, update, modify, destroy} = require("../controllers/controllore")
 
-// index
-router.get('/', controllore.index);
-
-// show
-router.get('/:id', controllore.show);
-
-// store
-router.post('/', controllore.store);
-
-// update
-router.put('/:id', controllore.update);
-
+//index
+router.get("/", index);
+//show
+router.get("/:id", show);
+//store
+router.post("/", store)
+//update
+router.put("/:id", update)
 // modify
-router.patch('/:id', controllore.modify);
-
+router.patch("/:id", modify)
 // destroy
-router.delete('/:id', controllore.destroy);
+router.delete("/:id", destroy)
 
 module.exports = router
